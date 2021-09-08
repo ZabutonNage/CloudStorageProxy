@@ -84,9 +84,70 @@ To get a list of available commands use the 'help' command.
 CloudStorageProxy> node main -h
 ```
 
+### Generate key
+
+Your key is read from the `key.json` file.
+In the beginning, the file does not contain a key and should look like this:
+
+```json
+{
+  "key": ""
+}
+```
+
+Generate a new key with the following command.
+
+```shell
+node main -k
+```
+
+Alternatively, you can specify your own key if it is 32 bytes long and hex encoded.
+
+#### Protect your key
+
+Your key is the heart of your data security because anybody in possession of it is able to decrypt your data.
+
+You might want to consider storing the key in a **password manager** and only write it into the key file when needed.  
+Beware more sophisticated text editors, though, that remember a file's change history.
+This could potentially expose your key even though the current file does not contain it.
+
+Another thinkable way to protect your key is to move the key file to an **external storage device** that you can disconnect after usage.
+
+After all, perfect security is very difficult to achieve because of the multitude of potential attack vectors.
+Even your antivirus software could pose a threat if it scans all disk writes and possibly sends "suspicious" data home "for analysis."
+You just have to _trust_ it that it doesn't.
+
+Assess the threats you want to protect your data from and choose your countermeasures accordingly.
+
+### Encrypt
+
+_Note that you have to configure your directories first before you can start encrypting or decrypting.
+See further below for details._
+
+To encrypt your data in `localSend` and send it to `remote` run the following command.
+
+```shell
+node main -e
+```
+
+Your folder structure will not be reflected in `remote`.
+Filenames will be hashed.
+
+### Decrypt
+
+To decrypt everything in `remote` and return it to `localReceive` run the following command.
+
+```shell
+node main -d
+```
+
+Folder structure and file stats, such as creation date and last modified date, will be restored.
+Files that already exist in `localReceive` will be overwritten without warning.
+Make sure you don't have any changes that you want to preserve.
+
 ### Configuring directories
 
-Before you can start encrypting you need to specify the directory where Cloud Storage Proxy shall write the encrypted data to and the proxy directory that contains the unencrypted data. 
+Before you can start encrypting you need to specify the directory where Cloud Storage Proxy shall write the encrypted data to and the proxy directory that contains the unencrypted data.
 
 Open the `config.json` file with a text editor.
 
@@ -127,7 +188,7 @@ This could be particularly useful in the beginning while you are familiarizing y
 `remote` specifies the directory your encrypted data is written to and read from.
 This would be your synchronized cloud storage directory.
 
-  This directory must exist prior to running Cloud Storage Proxy.
+This directory must exist prior to running Cloud Storage Proxy.
 
 #### Path notation
 
@@ -158,64 +219,6 @@ An example `config.json`:
   }
 }
 ```
-
-### Generate key
-
-Your key is read from the `key.json` file.
-In the beginning, the file does not contain a key and should look like this:
-
-```json
-{
-  "key": ""
-}
-```
-
-Generate a new key with the following command.
-
-```shell
-node main -k
-```
-
-Alternatively, you can specify your own key if it is 32 bytes long and hex encoded.
-
-#### Protect your key
-
-Your key is the heart of your data security because anybody in possession of it is able to decrypt your data.
-
-You might want to consider storing the key in a **password manager** and only write it into the key file when needed.  
-Beware more sophisticated text editors, though, that remember a file's change history.
-This could potentially expose your key even though the current file does not contain it.
-
-Another thinkable way to protect your key is to move the key file to an **external storage device** that you can disconnect after usage.
-
-After all, perfect security is very difficult to achieve because of the multitude of potential attack vectors.
-Even your antivirus software could pose a threat if it scans all disk writes and possibly sends "suspicious" data home "for analysis."
-You just have to _trust_ it that it doesn't.
-
-Assess the threats you want to protect your data from and choose your countermeasures accordingly.
-
-### Encrypt
-
-To encrypt your data in `localSend` and send it to `remote` run the following command.
-
-```shell
-node main -e
-```
-
-Your folder structure will not be reflected in `remote`.
-Filenames will be hashed.
-
-### Decrypt
-
-To decrypt everything in `remote` and return it to `localReceive` run the following command.
-
-```shell
-node main -d
-```
-
-Folder structure and file stats, such as creation date and last modified date, will be restored.
-Files that already exist in `localReceive` will be overwritten without warning.
-Make sure you don't have any changes that you want to preserve.
 
 ## Crypto Audits
 
