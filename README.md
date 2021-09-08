@@ -206,6 +206,36 @@ correct: c:/some/windows/path
 While it is perfectly valid to specify relative paths, these will yield different results depending on the location you invoke `node main` from.
 Absolute paths provide a more predictable behaviour and are therefore recommended.
 
+#### Named directory sets
+
+You may specify multiple sets of directories for your local and remote data.
+In `config.json`, add another object at the root level next to `DEFAULT` that has the same structure.
+Give it a descriptive name.
+This name is referred to from the command line.
+Set the paths as you require.
+
+Suppose you added a set called `photos` (details omitted for focus):
+
+```json
+{
+  "DEFAULT": {...},
+  "photos": {...}
+}
+```
+
+To _encrypt_ the data specified in the `photos` set, you would run:
+
+```shell
+node main -e photos
+```
+
+`DEFAULT` is a special value and does not need to be specified on the command line.
+So to _decrypt_ your data according to the `DEFAULT` set, you run:
+
+```shell
+node main -d
+```
+
 #### Example
 
 An example `config.json`:
@@ -216,6 +246,11 @@ An example `config.json`:
     "localSend": "D:/MyData/CloudDrive-Proxy",
     "localReceive": "D:/MyData/CloudDrive-Proxy",
     "remote": "D:/Programs/CloudDrive/Confidential"
+  },
+  "docs": {
+    "localSend": "D:/MyData/Documents/send",
+    "localReceive": "D:/MyData/Documents/receive",
+    "remote": "D:/Programs/CloudDrive/docs"
   }
 }
 ```
