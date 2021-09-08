@@ -28,13 +28,15 @@ require(`./dencryption`)().then(den => {
         if (!den.verifyKey(keyInfo.key)) {
             return console.log(`Specified key in ${keyFile} is invalid.`);
         }
-        den.encryptAll(keyInfo.key, dirs.DEFAULT.localSend, dirs.DEFAULT.remote);
+        const dirCfg = dirs[dirCfgParamFromArgs()];
+        den.encryptAll(keyInfo.key, dirCfg.localSend, dirCfg.remote);
     }
     else if (operation === cmdOpts.decrypt) {
         if (!den.verifyKey(keyInfo.key)) {
             return console.log(`Specified key in ${keyFile} is invalid.`);
         }
-        den.decryptAll(keyInfo.key, dirs.DEFAULT.remote, dirs.DEFAULT.localReceive);
+        const dirCfg = dirs[dirCfgParamFromArgs()];
+        den.decryptAll(keyInfo.key, dirCfg.remote, dirCfg.localReceive);
     }
     else if (operation === cmdOpts.generateKey) {
         tryGenerateKey(keyInfo);
@@ -68,13 +70,17 @@ require(`./dencryption`)().then(den => {
 
 
 function printHelp() {
-    console.log(formatCmd(cmdOpts.encrypt, 4, `Encrypt files`));
-    console.log(formatCmd(cmdOpts.decrypt, 4, `Decrypt files`));
-    console.log(formatCmd(cmdOpts.generateKey, 4, `Generate new secret key`));
-    console.log(formatCmd(cmdOpts.version, 4, `Display version`));
-    console.log(formatCmd(cmdOpts.help, 4, `Print this help`));
+    console.log(formatCmd(cmdOpts.encrypt + ` [<path-set>]`, 19, `Encrypt files. Optionally specify set of directories from config`));
+    console.log(formatCmd(cmdOpts.decrypt + ` [<path-set>]`, 19, `Decrypt files. Optionally specify set of directories from config`));
+    console.log(formatCmd(cmdOpts.generateKey, 19, `Generate new secret key`));
+    console.log(formatCmd(cmdOpts.version, 19, `Display version`));
+    console.log(formatCmd(cmdOpts.help, 19, `Print this help`));
 
     function formatCmd(cmd, padding, msg) {
         return ` ` + cmd.padEnd(padding, ` `) + msg;
     }
+}
+
+function dirCfgParamFromArgs() {
+    return process.argv[3] || `DEFAULT`;
 }
