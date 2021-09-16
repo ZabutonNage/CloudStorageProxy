@@ -3,6 +3,7 @@
 ## Improvements
 
 - Introduce named sets of encryption targets and origins in config
+- Relative paths are resolved relative to `main.js`
 
 
 # 0.1.0

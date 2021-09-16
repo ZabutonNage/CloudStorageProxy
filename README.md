@@ -203,8 +203,9 @@ correct: c:/some/windows/path
 
 #### Absolute vs relative paths
 
-While it is perfectly valid to specify relative paths, these will yield different results depending on the location you invoke `node main` from.
 Absolute paths provide a more predictable behaviour and are therefore recommended.
+Relative paths resolve relative to `main.js`.
+Oftentimes this allows for shorter notation but will yield different results depending on where Cloud Storage Proxy is located in your file system.
 
 #### Named directory sets
 
