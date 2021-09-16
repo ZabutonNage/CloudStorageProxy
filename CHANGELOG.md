@@ -1,5 +1,8 @@
 # vNext
 
+
+# 0.1.1
+
 ## Improvements
 
 - Introduce named sets of encryption targets and origins in config
