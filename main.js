@@ -18,29 +18,36 @@ if (!cmdOptsVals.includes(operation)) {
 }
 
 
-const keyFile = `key.json`;
-const keyFileAbs = toAbsolutePath(keyFile);
-const keyInfo = require(keyFileAbs);
-const dirs = require(`./config.json`);
+const config = require(`./config.json`);
+
+const fallbackKeyFile = `key.json`;
+const defaultKeyFile = config.defaultKeyFile || fallbackKeyFile;
 
 
 require(`./dencryption`)().then(den => {
     if (operation === cmdOpts.encrypt) {
+        const dirCfg = config.directorySets[dirCfgParamFromArgs()];
+        const keyFile = dirCfg.keyFile || defaultKeyFile;
+        const keyInfo = keyInfoFromDisk(keyFile);
+
         if (!den.verifyKey(keyInfo.key)) {
             return console.log(`Specified key in ${keyFile} is invalid.`);
         }
-        const dirCfg = dirs[dirCfgParamFromArgs()];
         den.encryptAll(keyInfo.key, toAbsolutePath(dirCfg.localSend), toAbsolutePath(dirCfg.remote));
     }
     else if (operation === cmdOpts.decrypt) {
+        const dirCfg = config.directorySets[dirCfgParamFromArgs()];
+        const keyFile = dirCfg.keyFile || defaultKeyFile;
+        const keyInfo = keyInfoFromDisk(keyFile);
+
         if (!den.verifyKey(keyInfo.key)) {
             return console.log(`Specified key in ${keyFile} is invalid.`);
         }
-        const dirCfg = dirs[dirCfgParamFromArgs()];
         den.decryptAll(keyInfo.key, toAbsolutePath(dirCfg.remote), toAbsolutePath(dirCfg.localReceive));
     }
     else if (operation === cmdOpts.generateKey) {
-        tryGenerateKey(keyInfo);
+        const keyInfo = keyInfoFromDisk(fallbackKeyFile);
+        tryGenerateKey(keyInfo, fallbackKeyFile);
     }
     else if (operation === cmdOpts.help) {
         printHelp();
@@ -54,7 +61,7 @@ require(`./dencryption`)().then(den => {
     }
 
 
-    function tryGenerateKey(keyInfo) {
+    function tryGenerateKey(keyInfo, keyFile) {
         if (keyInfo.key) {
             return console.log(`Key already specified. If you want to generate a new key, you must first empty the 'key' field in the file '${keyFile}'.`);
         }
@@ -63,7 +70,7 @@ require(`./dencryption`)().then(den => {
         }
         den.generateKey().then(key => {
             keyInfo.key = key;
-            require(`fs`).writeFileSync(keyFileAbs, JSON.stringify(keyInfo, undefined, 2));
+            require(`fs`).writeFileSync(toAbsolutePath(keyFile), JSON.stringify(keyInfo, undefined, 2));
             console.log(`New secret key successfully written to '${keyFile}'.`);
         });
     }
@@ -84,6 +91,10 @@ function printHelp() {
 
 function dirCfgParamFromArgs() {
     return process.argv[3] || `DEFAULT`;
+}
+
+function keyInfoFromDisk(keyFile) {
+    return require(toAbsolutePath(keyFile));
 }
 
 function toAbsolutePath(p) {

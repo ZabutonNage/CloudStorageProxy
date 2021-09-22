@@ -1,7 +1,16 @@
 {
-  "DEFAULT": {
-    "localSend": "",
-    "localReceive": "",
-    "remote": ""
+  "defaultKeyFile": "key.json",
+  "directorySets": {
+    "DEFAULT": {
+      "localSend": "",
+      "localReceive": "",
+      "remote": ""
+    },
+    "example1": {
+      "keyFile": "key2.json",
+      "localSend": "",
+      "localReceive": "",
+      "remote": ""
+    }
   }
 }
