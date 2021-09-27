@@ -78,11 +78,13 @@ require(`./dencryption`)().then(den => {
 
 
 function printHelp() {
-    console.log(formatCmd(cmdOpts.encrypt + ` [<path-set>]`, 19, `Encrypt files. Optionally specify set of directories from config`));
-    console.log(formatCmd(cmdOpts.decrypt + ` [<path-set>]`, 19, `Decrypt files. Optionally specify set of directories from config`));
-    console.log(formatCmd(cmdOpts.generateKey, 19, `Generate new secret key`));
-    console.log(formatCmd(cmdOpts.version, 19, `Display version`));
-    console.log(formatCmd(cmdOpts.help, 19, `Print this help`));
+    const padding = 24;
+
+    console.log(formatCmd(cmdOpts.encrypt + ` [<directory-set>]`, padding, `Encrypt files. Optionally specify set of directories from config`));
+    console.log(formatCmd(cmdOpts.decrypt + ` [<directory-set>]`, padding, `Decrypt files. Optionally specify set of directories from config`));
+    console.log(formatCmd(cmdOpts.generateKey, padding, `Generate new secret key`));
+    console.log(formatCmd(cmdOpts.version, padding, `Display version`));
+    console.log(formatCmd(cmdOpts.help, padding, `Print this help`));
 
     function formatCmd(cmd, padding, msg) {
         return ` ` + cmd.padEnd(padding, ` `) + msg;
