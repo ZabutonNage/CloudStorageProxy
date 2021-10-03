@@ -4,10 +4,12 @@
 ## Breaking
 
 - Directory sets are no longer defined in the config root but in their own namespace `directorySets`.
+- Data encrypted with prior versions can no longer be decrypted because it is not compressed. Before upgrading, decrypt all your data with the previous version, upgrade, and then re-encrypt it with this version.
 
 ## Features
 
 - Key files can be specified in `config.json` through new fields `keyFile` and `defaultKeyFile`. Each directory set may specify its own key file.
+- Data is compressed before encryption.
 
 
 # 0.1.1
