@@ -1,6 +1,15 @@
 # vNext
 
 
+## Breaking
+
+- Directory sets are no longer defined in the config root but in their own namespace `directorySets`.
+
+## Features
+
+- Key files can be specified in `config.json` through new fields `keyFile` and `defaultKeyFile`. Each directory set may specify its own key file.
+
+
 # 0.1.1
 
 ## Improvements
