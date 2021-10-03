@@ -44,20 +44,30 @@ else {
 
 
 function dencrypt(config, operation) {
-    const dirSet = config.directorySets[dirSetParamFromArgs()];
-    const keyFile = dirSet.keyFile || defaultKeyFile;
-    const keyInfo = keyInfoFromDisk(keyFile);
+    const potentialDirSet = config.directorySets[dirSetParamFromArgs()];
+    const dirSets = Array.isArray(potentialDirSet)
+        ? potentialDirSet.map(dset => config.directorySets[dset])
+        : [potentialDirSet];
 
-    require(`./dencryption`)().then(den => {
-        if (!den.verifyKey(keyInfo.key)) {
-            return console.log(`Specified key in ${keyFile} is invalid.`);
-        }
+    require(`./dencryption`)().then(async den => {
+        const keyFiles = new Map();
 
-        if (operation === cmdOpts.encrypt) {
-            den.encryptAll(keyInfo.key, toAbsolutePath(dirSet.localSend), toAbsolutePath(dirSet.remote));
-        }
-        else {
-            den.decryptAll(keyInfo.key, toAbsolutePath(dirSet.remote), toAbsolutePath(dirSet.localReceive));
+        for (const dirSet of dirSets) {
+            const keyFile = dirSet.keyFile || defaultKeyFile;
+            if (!keyFiles.has(keyFile)) {
+                keyFiles.set(keyFile, keyInfoFromDisk(keyFile));
+            }
+            const keyInfo = keyFiles.get(keyFile);
+
+            if (!den.verifyKey(keyInfo.key)) {
+                return console.log(`Specified key in ${keyFile} is invalid.`);
+            }
+
+            if (operation === cmdOpts.encrypt) {
+                await den.encryptAll(keyInfo.key, toAbsolutePath(dirSet.localSend), toAbsolutePath(dirSet.remote));
+            } else {
+                await den.decryptAll(keyInfo.key, toAbsolutePath(dirSet.remote), toAbsolutePath(dirSet.localReceive));
+            }
         }
     });
 }

@@ -11,6 +11,7 @@
       "localSend": "",
       "localReceive": "",
       "remote": ""
-    }
+    },
+    "example-multi": ["DEFAULT", "example1"]
   }
 }
