@@ -162,7 +162,7 @@ async function init() {
             const fileFromRoot = path.join(localBase, fileFromBase);
             fs.mkdirSync(path.dirname(fileFromRoot), { recursive: true });
             fs.writeFileSync(fileFromRoot, plainFileText);
-            utimes(fileFromRoot, stats);
+            await utimes(fileFromRoot, stats);
 
             console.log(`Decrypted: ${fileFromRoot}`);
         } catch (e) {
