@@ -10,6 +10,7 @@
 
 - Key files can be specified in `config.json` through new fields `keyFile` and `defaultKeyFile`. Each directory set may specify its own key file.
 - Data is compressed before encryption.
+- Directory set batches. Configure multiple directory sets to run with a single command.
 
 
 # 0.1.1
