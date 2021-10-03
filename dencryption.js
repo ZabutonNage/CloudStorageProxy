@@ -4,9 +4,10 @@ module.exports = init;
 const fs = require(`fs`);
 const path = require(`path`);
 const { utimes } = require(`utimes`);
+const zlib = require(`zlib`);
 
 
-const algoVer = `000`;
+const algoVer = `001`;
 
 
 async function init() {
@@ -86,13 +87,13 @@ async function init() {
             }), `utf8`);
             const statsLen = int16ToBuffer(statsBuf.length);
 
-            const textToEncrypt = Buffer.concat([
+            const textToEncrypt = zlib.gzipSync(Buffer.concat([
                 filenameLen,
                 fileFromBaseBuf,
                 statsLen,
                 statsBuf,
                 filePlaintext,
-            ]);
+            ]));
 
             const nonce = await sodium.randombytes_buf(24);
             const { encKey, commitment } = await deriveKeys(key, nonce);
@@ -146,7 +147,7 @@ async function init() {
 
         try {
             let i = 0;
-            const plaintext = await sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertext, nonce, encKey, aad);
+            const plaintext = zlib.gunzipSync(await sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertext, nonce, encKey, aad));
             const filenameLen = plaintext.readInt16LE(i);
             i += 2;
             const fileFromBase = plaintext.toString(`utf8`, i, i + filenameLen);
