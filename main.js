@@ -24,57 +24,57 @@ const fallbackKeyFile = `key.json`;
 const defaultKeyFile = config.defaultKeyFile || fallbackKeyFile;
 
 
-require(`./dencryption`)().then(den => {
-    if (operation === cmdOpts.encrypt) {
-        const dirCfg = config.directorySets[dirCfgParamFromArgs()];
-        const keyFile = dirCfg.keyFile || defaultKeyFile;
-        const keyInfo = keyInfoFromDisk(keyFile);
+if (operation === cmdOpts.encrypt || operation === cmdOpts.decrypt) {
+    dencrypt(config, operation);
+}
+else if (operation === cmdOpts.generateKey) {
+    const keyInfo = keyInfoFromDisk(fallbackKeyFile);
+    tryGenerateKey(keyInfo, fallbackKeyFile);
+}
+else if (operation === cmdOpts.help) {
+    printHelp();
+}
+else if (operation === cmdOpts.version) {
+    console.log(require(`./package.json`).version);
+}
+else {
+    console.log(`This message should never be displayed. Apparently '${operation}' was forgotten to implement.`);
+    printHelp();
+}
 
+
+function dencrypt(config, operation) {
+    const dirSet = config.directorySets[dirSetParamFromArgs()];
+    const keyFile = dirSet.keyFile || defaultKeyFile;
+    const keyInfo = keyInfoFromDisk(keyFile);
+
+    require(`./dencryption`)().then(den => {
         if (!den.verifyKey(keyInfo.key)) {
             return console.log(`Specified key in ${keyFile} is invalid.`);
         }
-        den.encryptAll(keyInfo.key, toAbsolutePath(dirCfg.localSend), toAbsolutePath(dirCfg.remote));
-    }
-    else if (operation === cmdOpts.decrypt) {
-        const dirCfg = config.directorySets[dirCfgParamFromArgs()];
-        const keyFile = dirCfg.keyFile || defaultKeyFile;
-        const keyInfo = keyInfoFromDisk(keyFile);
 
-        if (!den.verifyKey(keyInfo.key)) {
-            return console.log(`Specified key in ${keyFile} is invalid.`);
+        if (operation === cmdOpts.encrypt) {
+            den.encryptAll(keyInfo.key, toAbsolutePath(dirSet.localSend), toAbsolutePath(dirSet.remote));
         }
-        den.decryptAll(keyInfo.key, toAbsolutePath(dirCfg.remote), toAbsolutePath(dirCfg.localReceive));
-    }
-    else if (operation === cmdOpts.generateKey) {
-        const keyInfo = keyInfoFromDisk(fallbackKeyFile);
-        tryGenerateKey(keyInfo, fallbackKeyFile);
-    }
-    else if (operation === cmdOpts.help) {
-        printHelp();
-    }
-    else if (operation === cmdOpts.version) {
-        console.log(require(`./package.json`).version);
-    }
-    else {
-        console.log(`This message should never be displayed. Apparently '${operation}' was forgotten to implement.`);
-        printHelp();
-    }
+        else {
+            den.decryptAll(keyInfo.key, toAbsolutePath(dirSet.remote), toAbsolutePath(dirSet.localReceive));
+        }
+    });
+}
 
-
-    function tryGenerateKey(keyInfo, keyFile) {
-        if (keyInfo.key) {
-            return console.log(`Key already specified. If you want to generate a new key, you must first empty the 'key' field in the file '${keyFile}'.`);
-        }
-        if (!keyInfo.hasOwnProperty(`key`)) {
-            return console.log(`'key' field not found. Key file '${keyFile}' must have a 'key' field with an empty string value { "key": "" }.`);
-        }
-        den.generateKey().then(key => {
-            keyInfo.key = key;
-            require(`fs`).writeFileSync(toAbsolutePath(keyFile), JSON.stringify(keyInfo, undefined, 2));
-            console.log(`New secret key successfully written to '${keyFile}'.`);
-        });
+function tryGenerateKey(keyInfo, keyFile) {
+    if (keyInfo.key) {
+        return console.log(`Key already specified. If you want to generate a new key, you must first empty the 'key' field in the file '${keyFile}'.`);
     }
-});
+    if (!keyInfo.hasOwnProperty(`key`)) {
+        return console.log(`'key' field not found. Key file '${keyFile}' must have a 'key' field with an empty string value { "key": "" }.`);
+    }
+    den.generateKey().then(key => {
+        keyInfo.key = key;
+        require(`fs`).writeFileSync(toAbsolutePath(keyFile), JSON.stringify(keyInfo, undefined, 2));
+        console.log(`New secret key successfully written to '${keyFile}'.`);
+    });
+}
 
 
 function printHelp() {
@@ -91,7 +91,7 @@ function printHelp() {
     }
 }
 
-function dirCfgParamFromArgs() {
+function dirSetParamFromArgs() {
     return process.argv[3] || `DEFAULT`;
 }
 

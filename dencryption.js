@@ -22,8 +22,8 @@ async function init() {
     };
 
 
-    async function encryptAll(exportedKey, localBase, remoteBase) {
-        const key = new CryptographyKey(await sodium.sodium_hex2bin(exportedKey));
+    async function encryptAll(keyHex, localBase, remoteBase) {
+        const key = new CryptographyKey(await sodium.sodium_hex2bin(keyHex));
 
         await encryptFiles();
 
@@ -47,8 +47,8 @@ async function init() {
         }
     }
 
-    async function decryptAll(exportedKey, remoteBase, localBase) {
-        const key = new CryptographyKey(await sodium.sodium_hex2bin(exportedKey));
+    async function decryptAll(keyHex, remoteBase, localBase) {
+        const key = new CryptographyKey(await sodium.sodium_hex2bin(keyHex));
         const dirEntries = fs.readdirSync(remoteBase, { withFileTypes: true });
 
         for (const dirent of dirEntries) {
