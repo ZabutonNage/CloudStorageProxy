@@ -12,6 +12,9 @@
 - Data is compressed before encryption.
 - Directory set batches. Configure multiple directory sets to run with a single command.
 
+## Improvements
+- Key generation now creates a new key file if none exists.
+
 
 # 0.1.1
 
