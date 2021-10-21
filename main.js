@@ -28,8 +28,7 @@ if (operation === cmdOpts.encrypt || operation === cmdOpts.decrypt) {
     dencrypt(config, operation);
 }
 else if (operation === cmdOpts.generateKey) {
-    const keyInfo = keyInfoFromDisk(fallbackKeyFile);
-    tryGenerateKey(keyInfo, fallbackKeyFile);
+    tryGenerateKey(fallbackKeyFile);
 }
 else if (operation === cmdOpts.help) {
     printHelp();
@@ -72,17 +71,21 @@ function dencrypt(config, operation) {
     });
 }
 
-function tryGenerateKey(keyInfo, keyFile) {
+function tryGenerateKey(keyFile) {
+    const keyInfo = keyInfoFromDiskOrEmpty(keyFile);
+
     if (keyInfo.key) {
-        return console.log(`Key already specified. If you want to generate a new key, you must first empty the 'key' field in the file '${keyFile}'.`);
+        return console.log(`Key already specified. If you want to generate a new key, you must first empty the 'key' field in the file '${keyFile}' or specify a filename that doesn't exist yet.`);
     }
     if (!keyInfo.hasOwnProperty(`key`)) {
         return console.log(`'key' field not found. Key file '${keyFile}' must have a 'key' field with an empty string value { "key": "" }.`);
     }
-    den.generateKey().then(key => {
-        keyInfo.key = key;
-        require(`fs`).writeFileSync(toAbsolutePath(keyFile), JSON.stringify(keyInfo, undefined, 2));
-        console.log(`New secret key successfully written to '${keyFile}'.`);
+    require(`./dencryption`)().then(den => {
+        den.generateKey().then(key => {
+            keyInfo.key = key;
+            require(`fs`).writeFileSync(toAbsolutePath(keyFile), JSON.stringify(keyInfo, undefined, 2));
+            console.log(`New secret key successfully written to '${keyFile}'.`);
+        });
     });
 }
 
@@ -107,6 +110,15 @@ function dirSetParamFromArgs() {
 
 function keyInfoFromDisk(keyFile) {
     return require(toAbsolutePath(keyFile));
+}
+
+function keyInfoFromDiskOrEmpty(keyFile) {
+    try {
+        return keyInfoFromDisk(keyFile);
+    }
+    catch {
+        return { key: `` };
+    }
 }
 
 function toAbsolutePath(p) {
