@@ -1,6 +1,8 @@
 # vNext
 
 
+# 0.2.0
+
 ## Breaking
 
 - Directory sets are no longer defined in the config root but in their own namespace `directorySets`.

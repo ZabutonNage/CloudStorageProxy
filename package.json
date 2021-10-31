@@ -1,6 +1,6 @@
 {
   "name": "cloud-storage-proxy",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "dependencies": {
     "sodium-plus": "^0.9.0",
     "utimes": "^4.0.5"
