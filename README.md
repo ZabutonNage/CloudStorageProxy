@@ -5,13 +5,16 @@
 This program enables you to store encrypted files with your cloud storage service that otherwise does not offer encryption.
 In a sense it turns your unencrypted cloud storage service into an **end-to-end encrypted** service.
 
-It does so by encrypting local files from a specified directory on your desktop computer and sending them to your directory that is being synchronized with your cloud storage service.
+It does so by encrypting local files from a specified directory on your desktop computer and sending them to your (also local) directory that is being synchronized with your cloud storage service.
 
-Likewise, it picks the files from your cloud storage directory, decrypts them, and writes them back to their original location.
+Likewise, it picks the files from that cloud storage directory, decrypts them, and writes them back to their original location.
 
 Cloud Storage Proxy itself **does not connect** to the internet.
 Everything is happening **locally** on your desktop computer.
 Your cloud storage service only gets to work with **encrypted data**.
+
+Cloud Storage Proxy uses _symmetric encryption_.
+This means it uses the same key for encrypting and decrypting.
 
 ## Motivation
 
@@ -76,7 +79,7 @@ Installation complete.
 ## Usage
 
 Cloud Storage Proxy is started from the command line using Node.js.
-The program's main entry point is `main.js`.
+The program's entry point is `main.js`.
 
 To get a list of available commands use the 'help' command.
 
@@ -86,8 +89,9 @@ CloudStorageProxy> node main -h
 
 ### Generate key
 
-Your key is read from the `key.json` file.
-In the beginning, the file does not contain a key and should look like this:
+You need an encryption key for en- and decryption.
+An empty key file `key.json` is provided with the rest of the program.
+In the beginning, it should look like this:
 
 ```json
 {
@@ -101,17 +105,24 @@ Generate a new key with the following command.
 node main -k
 ```
 
+If a `key.json` file exists and has an empty `key` field, the command will write the new key to that file.
+If no `key.json` file exists, a new one with a new key will be generated.
+
 Alternatively, you can specify your own key if it is 32 bytes long and hex encoded.
 
-#### Protect your key
+If you need multiple keys, generate a key, rename `key.json` and generate another key.
+Repeat as many times as you like.
 
-Your key is the heart of your data security because anybody in possession of it is able to decrypt your data.
+#### Protect your keys
 
-You might want to consider storing the key in a **password manager** and only write it into the key file when needed.  
-Beware more sophisticated text editors, though, that remember a file's change history.
-This could potentially expose your key even though the current file does not contain it.
+Your keys are the heart of your data security because anybody in possession of them is able to decrypt your data.
 
-Another thinkable way to protect your key is to move the key file to an **external storage device** that you can disconnect after usage.
+You might want to consider storing your keys in a **password manager** and only write them to the key files when needed.
+Be mindful with more sophisticated text editors though.
+Some can remember a file's change history.
+This could potentially expose your keys to actors with access to your computer even though the current key files are empty.
+
+A more practical and possibly safer approach to protect your keys is to move your key files to an **external storage device** that you can disconnect after usage.
 
 After all, perfect security is very difficult to achieve because of the multitude of potential attack vectors.
 Even your antivirus software could pose a threat if it scans all disk writes and possibly sends "suspicious" data home "for analysis."
@@ -122,27 +133,27 @@ Assess the threats you want to protect your data from and choose your countermea
 ### Encrypt
 
 _Note that you have to configure your directories first before you can start encrypting or decrypting.
-See further below for details._
+See [Configuring directories](#configuring-directories) for details._
 
-To encrypt your data in `localSend` and send it to `remote` run the following command.
+To encrypt your data in [`localSend`](#localsend) and send it to [`remote`](#remote) run the following command.
 
 ```shell
 node main -e
 ```
 
-Your folder structure will not be reflected in `remote`.
+Your folder structure will not be reflected in [`remote`](#remote).
 Filenames will be hashed.
 
 ### Decrypt
 
-To decrypt everything in `remote` and return it to `localReceive` run the following command.
+To decrypt everything in [`remote`](#remote) and return it to [`localReceive`](#localreceive) run the following command.
 
 ```shell
 node main -d
 ```
 
 Folder structure and file stats, such as creation date and last modified date, will be restored.
-Files that already exist in `localReceive` will be overwritten without warning.
+Files that already exist in [`localReceive`](#localreceive) will be overwritten without warning.
 Make sure you don't have any changes that you want to preserve.
 
 ### Configuring directories
@@ -155,15 +166,33 @@ You should see the following text.
 
 ```json
 {
-  "DEFAULT": {
-    "localSend": "",
-    "localReceive": "",
-    "remote": ""
+  "defaultKeyFile": "key.json",
+  "directorySets": {
+    "DEFAULT": {
+      "localSend": "",
+      "localReceive": "",
+      "remote": ""
+    }
   }
 }
 ```
 
 #### Fields
+
+##### defaultKeyFile
+
+`defaultKeyFile` points to the key file that is used for all en- and decryption.
+It can be overridden for each directory set by specifying a `keyFile` field in the relevant directory set.
+See [Example](#example).
+
+##### directorySets
+
+`directorySets` contains all _directory sets_ and _directory set batches_.
+
+[_Directory sets_](#named-directory-sets) define data sources and destinations as well as an optional `keyFile` when you want to use a key different from the `defaultKeyFile` for this set.
+
+[_Directory set batches_](#directory-set-batches) are lists of _directory sets_.
+These are useful when you want to process multiple _directory sets_ at once.
 
 ##### localSend
 
@@ -187,6 +216,7 @@ This could be particularly useful in the beginning while you are familiarizing y
 
 `remote` specifies the directory your encrypted data is written to and read from.
 This would be your synchronized cloud storage directory.
+But it can be really any directory, e.g. an external storage device.
 
 This directory must exist prior to running Cloud Storage Proxy.
 
@@ -210,7 +240,7 @@ Oftentimes this allows for shorter notation but will yield different results dep
 #### Named directory sets
 
 You may specify multiple sets of directories for your local and remote data.
-In `config.json`, add another object at the root level next to `DEFAULT` that has the same structure.
+In `config.json`, add another object in `directorySets` next to `DEFAULT` using the same structure.
 Give it a descriptive name.
 This name is referred to from the command line.
 Set the paths as you require.
@@ -219,8 +249,10 @@ Suppose you added a set called `photos` (details omitted for focus):
 
 ```json
 {
-  "DEFAULT": {...},
-  "photos": {...}
+  "directorySets": {
+    "DEFAULT": {...},
+    "photos": {...}
+  }
 }
 ```
 
@@ -231,10 +263,54 @@ node main -e photos
 ```
 
 `DEFAULT` is a special value and does not need to be specified on the command line.
-So to _decrypt_ your data according to the `DEFAULT` set, you run:
+So to _decrypt_ your data using to the `DEFAULT` set, you run:
 
 ```shell
 node main -d
+```
+
+##### Overriding the default key
+
+Each directory set can have an additional `keyFile` field.
+It takes a path to a key file like `defaultKeyFile` does.
+When defined, data of that directory set will be en- and decrypted with this key instead of `defaultKeyFile`.
+
+This can be useful when you share a `remote` directory with somebody else.
+All participants would use the same key in this scenario.
+Make sure you generate a new key and share it over a secure communication channel, e.g. https://wormhole.app/
+
+Remember to **never** share they key to your private data.
+Different purpose, different key.
+
+See [Example](#example) for usage.
+
+##### Directory set batches
+
+Encryption and decryption commands always refer to exactly one entry in `directorySets`.
+If you have several directory sets defined, there may be times when you want to process multiple sets at once.
+
+Directory set batches are defined under `directorySets`, too.
+They have a name, like regular directory sets, that is referred to from the command line.
+The batched directory sets are listed in an array.
+
+_Note that batches cannot reference other batches!_
+
+Here, `all` is a directory set batch:
+
+```json
+{
+  "directorySets": {
+    "DEFAULT": {...},
+    "photos": {...},
+    "all": ["DEFAULT", "photos"]
+  }
+}
+```
+
+On the command line you invoke a batch by its name just like you would with individual directory sets.
+
+```shell
+node main -e all
 ```
 
 #### Example
@@ -243,15 +319,20 @@ An example `config.json`:
 
 ```json
 {
-  "DEFAULT": {
-    "localSend": "D:/MyData/CloudDrive-Proxy",
-    "localReceive": "D:/MyData/CloudDrive-Proxy",
-    "remote": "D:/Programs/CloudDrive/Confidential"
-  },
-  "docs": {
-    "localSend": "D:/MyData/Documents/send",
-    "localReceive": "D:/MyData/Documents/receive",
-    "remote": "D:/Programs/CloudDrive/docs"
+  "defaultKeyFile": "key.json",
+  "directorySets": {
+    "DEFAULT": {
+      "localSend": "D:/MyData/CloudDrive-Proxy",
+      "localReceive": "D:/MyData/CloudDrive-Proxy",
+      "remote": "D:/Programs/CloudDrive/Confidential"
+    },
+    "docs": {
+      "keyFile": "key2.json",
+      "localSend": "D:/MyData/Documents/send",
+      "localReceive": "D:/MyData/Documents/receive",
+      "remote": "D:/Programs/CloudDrive/docs"
+    },
+    "all": ["DEFAULT", "docs"]
   }
 }
 ```
