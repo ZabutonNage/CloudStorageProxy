@@ -1,4 +1,7 @@
 # vNext
+## Improvements
+
+- Specify list of possible locations of key files.
 
 
 # 0.2.0
