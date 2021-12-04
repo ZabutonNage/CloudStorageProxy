@@ -12,6 +12,15 @@
       "localReceive": "",
       "remote": ""
     },
-    "example-multi": ["DEFAULT", "example1"]
+    "example-multi": ["DEFAULT", "example1"],
+    "example-multiple-key-files": {
+      "keyFile": [
+        "d:/key.json",
+        "e:/key.json"
+      ],
+      "localSend": "",
+      "localReceive": "",
+      "remote": ""
+    }
   }
 }

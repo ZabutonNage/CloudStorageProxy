@@ -49,24 +49,56 @@ function dencrypt(config, operation) {
         : [potentialDirSet];
 
     require(`./dencryption`)().then(async den => {
-        const keyFiles = new Map();
+        const keyInfoCache = new Map();
 
         for (const dirSet of dirSets) {
-            const keyFile = dirSet.keyFile || defaultKeyFile;
-            if (!keyFiles.has(keyFile)) {
-                keyFiles.set(keyFile, keyInfoFromDisk(keyFile));
-            }
-            const keyInfo = keyFiles.get(keyFile);
+            const keyFiles = dirSet.hasOwnProperty(`keyFile`)
+                ? getKeyFiles(dirSet.keyFile)
+                : getKeyFiles(defaultKeyFile);
 
-            if (!den.verifyKey(keyInfo.key)) {
-                return console.log(`Specified key in ${keyFile} is invalid.`);
+            const { keyFile, keyInfo } = findKeyInfo(keyFiles, keyInfoCache);
+
+            if (!keyFile) {
+                return console.log(`No key file found!`);
             }
+
+            console.log(`Using key ${keyFile}`);
 
             if (operation === cmdOpts.encrypt) {
                 await den.encryptAll(keyInfo.key, toAbsolutePath(dirSet.localSend), toAbsolutePath(dirSet.remote));
             } else {
                 await den.decryptAll(keyInfo.key, toAbsolutePath(dirSet.remote), toAbsolutePath(dirSet.localReceive));
             }
+        }
+
+        function getKeyFiles(strOrArray) {
+            if (Array.isArray(strOrArray)) return strOrArray;
+            return strOrArray && typeof strOrArray === `string`
+                ? [strOrArray]
+                : undefined;
+        }
+        function findKeyInfo(keyFiles, keyInfoCache) {
+            const cachedKeyFile = keyFiles.find(kf => keyInfoCache.has(kf));
+
+            if (cachedKeyFile) return {
+                keyFile: cachedKeyFile,
+                keyInfo: keyInfoCache.get(cachedKeyFile),
+            };
+
+            const fs = require(`fs`);
+
+            for (const keyFile of keyFiles) {
+                if (fs.existsSync(keyFile)) {
+                    const keyInfo = keyInfoFromDisk(keyFile);
+
+                    if (den.verifyKey(keyInfo.key)) {
+                        keyInfoCache.set(keyFile, keyInfo);
+                        return { keyFile, keyInfo };
+                    }
+                    console.log(`Specified key in ${keyFile} is invalid.`);
+                }
+            }
+            return {};
         }
     });
 }
