@@ -183,6 +183,7 @@ You should see the following text.
 
 `defaultKeyFile` points to the key file that is used for all en- and decryption.
 It can be overridden for each directory set by specifying a `keyFile` field in the relevant directory set.
+Can also be an array of paths where the key file can potentially be found.
 See [Example](#example).
 
 ##### directorySets
@@ -272,14 +273,19 @@ node main -d
 ##### Overriding the default key
 
 Each directory set can have an additional `keyFile` field.
-It takes a path to a key file like `defaultKeyFile` does.
+It takes either a single path to a key file or an array of paths to potential locations of a key file.
 When defined, data of that directory set will be en- and decrypted with this key instead of `defaultKeyFile`.
 
 This can be useful when you share a `remote` directory with somebody else.
 All participants would use the same key in this scenario.
 Make sure you generate a new key and share it over a secure communication channel, e.g. https://wormhole.app/
 
-Remember to **never** share they key to your private data.
+Specifying an array of potential paths to the key file can be useful when you store your key file on an external storage device.
+The drive letter assigned to the external storage device may differ with every reconnection.
+By specifying the path to the storage device multiple times but with different drive letters, you can avoid the need to update your config file whenever your device receives a different drive letter.
+E.g. `keyFile: ["e:/key.json", "f:/key.json", "g:/key.json"]`.
+
+Remember to **never** share the key to your private data.
 Different purpose, different key.
 
 See [Example](#example) for usage.
@@ -332,7 +338,13 @@ An example `config.json`:
       "localReceive": "D:/MyData/Documents/receive",
       "remote": "D:/Programs/CloudDrive/docs"
     },
-    "all": ["DEFAULT", "docs"]
+    "multipleKeyLocations": {
+      "keyFile": ["E:/key.json", "F:/key.json"],
+      "localSend": "D:/MyData/Documents/send",
+      "localReceive": "D:/MyData/Documents/receive",
+      "remote": "D:/Programs/CloudDrive/multi"
+    },
+    "all": ["DEFAULT", "docs", "multipleKeyLocations"]
   }
 }
 ```
